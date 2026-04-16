@@ -320,10 +320,10 @@ contract CrowdfundingModule is
             .tokenAddress;
         uint256 tokenAmount = filledTokenAmount[msg.sender][currentIndex];
 
-        IERC20Upgradeable(tokenAddress).safeTransfer(msg.sender, tokenAmount);
-
         ++saleIndexes[msg.sender];
         filledTokenAmount[msg.sender][currentIndex] = 0;
+
+        IERC20Upgradeable(tokenAddress).safeTransfer(msg.sender, tokenAmount);
 
         emit CloseSale(msg.sender, currentIndex);
     }
@@ -340,15 +340,13 @@ contract CrowdfundingModule is
             "CrowdfundingModule: not enough balance"
         );
 
+        filledTokenAmount[_dao][currentIndex] -= lpAmount;
+
         IERC20Upgradeable lp = IERC20Upgradeable(IDao(_dao).lp());
 
-        require(
-            lp.approve(address(privateExitModule), lp.balanceOf(address(this)))
-        );
+        require(lp.approve(address(privateExitModule), lpAmount));
 
         require(privateExitModule.privateExit(_dao, _id));
-
-        filledTokenAmount[_dao][currentIndex] -= lpAmount;
     }
 
     function buy(
